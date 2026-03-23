@@ -53,13 +53,13 @@ struct PromptEditorView: View {
 
             // Bottom bar
             HStack {
-                Text("\(prompt.wordCount) words")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-
                 if prompt.isBulletFormat {
                     let count = BulletDetector.parseBullets(prompt.body).count
                     Text("\(count) points")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                } else {
+                    Text("\(prompt.wordCount) words")
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }
@@ -75,7 +75,7 @@ struct PromptEditorView: View {
                     if prompt.hasTarget {
                         Label(prompt.targetSeconds.timeFormatted, systemImage: "timer")
                             .font(.caption)
-                    } else if prompt.wordCount > 0 {
+                    } else if !prompt.isBulletFormat && prompt.wordCount > 0 {
                         Label("~\(estimatedMinutes) min", systemImage: "timer")
                             .font(.caption)
                             .foregroundStyle(.secondary)
