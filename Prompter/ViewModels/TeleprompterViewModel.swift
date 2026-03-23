@@ -211,6 +211,12 @@ final class TeleprompterViewModel: ObservableObject {
             Task { @MainActor in
                 guard let self else { return }
 
+                // Start timer on first speech, regardless of mode or match
+                if !recognizedWords.isEmpty && !self.timerStarted && self.isPlaying {
+                    self.timerStarted = true
+                    self.startTimer()
+                }
+
                 if self.playbackMode == .script {
                     let prevIndex = engine?.cursorIndex ?? 0
                     engine?.processPartialResult(recognizedWords)
