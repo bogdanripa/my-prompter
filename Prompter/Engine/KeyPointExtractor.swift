@@ -6,13 +6,16 @@ import FoundationModels
 enum KeyPointExtractor {
     /// Extract key points from a script. Uses on-device LLM on iOS 26+, falls back to heuristic.
     static func extract(from text: String) async -> [String] {
+        let raw: [String]
         if #available(iOS 26, *) {
-            if let llmResult = await extractWithLLM(from: text) {
-                return llmResult
-            }
+            raw = await extractWithLLM(from: text) ?? extractHeuristic(from: text)
+        } else {
+            raw = extractHeuristic(from: text)
         }
-        // Fallback: heuristic extraction
-        return extractHeuristic(from: text)
+        // Strip any bullet markers from all results
+        return raw
+            .map { BulletDetector.stripBulletMarker($0) }
+            .filter { !$0.isEmpty }
     }
 
     /// Heuristic: split by paragraphs, take the first sentence or key phrase from each
