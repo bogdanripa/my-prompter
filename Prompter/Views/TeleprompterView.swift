@@ -184,7 +184,6 @@ struct TeleprompterView: View {
     private func bulletCard(_ bullet: BulletItem) -> some View {
         let isCurrent = bullet.id == viewModel.currentBulletIndex
         let isCompleted = viewModel.completedBullets.contains(bullet.id)
-        let isUpcoming = bullet.id > viewModel.currentBulletIndex && !isCompleted
 
         return HStack(alignment: .top, spacing: 16) {
             // Checkmark or bullet marker
@@ -208,6 +207,10 @@ struct TeleprompterView: View {
             RoundedRectangle(cornerRadius: 12)
                 .fill(isCurrent ? .white.opacity(0.08) : .clear)
         )
+        .contentShape(Rectangle())
+        .onTapGesture {
+            viewModel.toggleBullet(at: bullet.id)
+        }
         .animation(.easeInOut(duration: 0.3), value: isCurrent)
         .animation(.easeInOut(duration: 0.3), value: isCompleted)
     }

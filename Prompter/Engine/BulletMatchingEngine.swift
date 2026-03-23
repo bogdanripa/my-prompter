@@ -5,8 +5,8 @@ import Combine
 final class BulletMatchingEngine: ObservableObject {
     let bullets: [BulletItem]
 
-    @Published private(set) var currentBulletIndex: Int = 0
-    @Published private(set) var completedBullets: Set<Int> = []
+    @Published var currentBulletIndex: Int = 0
+    @Published var completedBullets: Set<Int> = []
 
     private let keywordThreshold: Int = 2  // keywords needed to consider a bullet "covered"
     private var recognizedKeywordsForCurrent: Set<String> = []

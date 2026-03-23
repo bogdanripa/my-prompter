@@ -139,6 +139,25 @@ final class TeleprompterViewModel: ObservableObject {
         }
     }
 
+    /// Manually toggle a bullet's completed state and advance the current index
+    func toggleBullet(at index: Int) {
+        guard let engine = bulletEngine else { return }
+
+        if completedBullets.contains(index) {
+            // Uncheck: remove from completed, move current back to this bullet
+            engine.completedBullets.remove(index)
+            engine.jumpTo(index: index)
+        } else {
+            // Check: mark as completed, advance current to the next uncompleted
+            engine.completedBullets.insert(index)
+            // Find next uncompleted bullet after this one
+            let nextUncompleted = (index + 1..<bullets.count).first { !engine.completedBullets.contains($0) }
+            if let next = nextUncompleted {
+                engine.jumpTo(index: next)
+            }
+        }
+    }
+
     /// Start listening and matching
     func start(with prompt: Prompt) {
         if matchingEngine == nil && bulletEngine == nil {
