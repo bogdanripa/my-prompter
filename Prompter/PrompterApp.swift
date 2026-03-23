@@ -3,10 +3,27 @@ import SwiftData
 
 @main
 struct PrompterApp: App {
+    @State private var showSplash = true
+
     var body: some Scene {
         WindowGroup {
-            PromptListView()
-                .preferredColorScheme(.dark)
+            ZStack {
+                PromptListView()
+                    .preferredColorScheme(.dark)
+
+                if showSplash {
+                    SplashView()
+                        .transition(.opacity)
+                        .zIndex(1)
+                }
+            }
+            .onAppear {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+                    withAnimation(.easeOut(duration: 0.4)) {
+                        showSplash = false
+                    }
+                }
+            }
         }
         .modelContainer(for: Prompt.self) { result in
             if let container = try? result.get() {

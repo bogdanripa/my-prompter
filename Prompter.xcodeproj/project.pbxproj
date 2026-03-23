@@ -29,6 +29,7 @@
 		AA000024 /* BulletMatchingEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB000024 /* BulletMatchingEngine.swift */; };
 		AA000025 /* KeyPointExtractor.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB000025 /* KeyPointExtractor.swift */; };
 		AA000026 /* Int+TimeFormat.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB000026 /* Int+TimeFormat.swift */; };
+		AA000027 /* SplashView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB000027 /* SplashView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -68,6 +69,7 @@
 		AB000024 /* BulletMatchingEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BulletMatchingEngine.swift; sourceTree = "<group>"; };
 		AB000025 /* KeyPointExtractor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyPointExtractor.swift; sourceTree = "<group>"; };
 		AB000026 /* Int+TimeFormat.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Int+TimeFormat.swift"; sourceTree = "<group>"; };
+		AB000027 /* SplashView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SplashView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -131,6 +133,7 @@
 				AB000006 /* TeleprompterView.swift */,
 				AB000007 /* SettingsView.swift */,
 				AB000021 /* FlowLayout.swift */,
+				AB000027 /* SplashView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -302,6 +305,7 @@
 				AA000024 /* BulletMatchingEngine.swift in Sources */,
 				AA000025 /* KeyPointExtractor.swift in Sources */,
 				AA000026 /* Int+TimeFormat.swift in Sources */,
+				AA000027 /* SplashView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
