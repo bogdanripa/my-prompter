@@ -111,11 +111,10 @@ final class TeleprompterViewModel: ObservableObject {
 
     /// Whether the user can manually toggle between script and bullet views
     var canToggleMode: Bool {
-        // Script with extracted bullets available, or native bullets with words also available
         if nativeBulletMode {
-            return totalWords > 0  // can switch to script view
+            return false  // no script to switch to
         } else {
-            return !extractedBullets.isEmpty || !bullets.isEmpty  // can switch to bullet view
+            return !extractedBullets.isEmpty || !bullets.isEmpty
         }
     }
 
