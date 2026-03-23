@@ -71,6 +71,10 @@ final class TeleprompterViewModel: ObservableObject {
     private var extractedBullets: [BulletItem] = []
     private var nativeBulletMode: Bool = false  // true if the prompt was written as bullets
 
+    // Switch back to script: require sustained word matching
+    private var scriptMatchStreak: Int = 0
+    private let switchBackThreshold: Int = 8  // need 8 consecutive advancing matches
+
     /// Prepare the view model with a prompt
     func prepare(with prompt: Prompt) {
         targetSeconds = prompt.targetSeconds
@@ -223,14 +227,20 @@ final class TeleprompterViewModel: ObservableObject {
                     // In bullet mode, feed to bullet engine
                     self.bulletEngine?.processPartialResult(recognizedWords)
 
-                    // Check if we should switch back to script
+                    // Check if we should switch back to script (not for native bullet prompts)
                     if !self.nativeBulletMode {
+                        let prevIndex = engine?.cursorIndex ?? 0
                         engine?.processPartialResult(recognizedWords)
-                        let prevIndex = self.currentWordIndex
                         let newIndex = engine?.cursorIndex ?? 0
-                        if newIndex > prevIndex + 3 {
-                            // Script matching is working again
-                            self.switchToScript()
+
+                        if newIndex > prevIndex {
+                            self.scriptMatchStreak += 1
+                            if self.scriptMatchStreak >= self.switchBackThreshold {
+                                self.scriptMatchStreak = 0
+                                self.switchToScript()
+                            }
+                        } else {
+                            self.scriptMatchStreak = 0
                         }
                     }
                 }
@@ -249,11 +259,6 @@ final class TeleprompterViewModel: ObservableObject {
             .sink { [weak self] index in
                 guard let self else { return }
                 self.currentBulletIndex = index
-
-                if index > 0 && !self.timerStarted && self.isPlaying {
-                    self.timerStarted = true
-                    self.startTimer()
-                }
             }
             .store(in: &cancellables)
 
@@ -262,6 +267,12 @@ final class TeleprompterViewModel: ObservableObject {
             .sink { [weak self] completed in
                 guard let self else { return }
                 self.completedBullets = completed
+
+                // Start timer when first bullet is matched
+                if !completed.isEmpty && !self.timerStarted && self.isPlaying {
+                    self.timerStarted = true
+                    self.startTimer()
+                }
 
                 // Check if all bullets completed
                 if completed.count == self.bullets.count && !self.isFinished {
@@ -293,6 +304,7 @@ final class TeleprompterViewModel: ObservableObject {
             playbackMode = .bullets
         }
         scriptConsecutiveMisses = 0
+        scriptMatchStreak = 0
     }
 
     private func switchToScript() {
@@ -300,6 +312,7 @@ final class TeleprompterViewModel: ObservableObject {
             playbackMode = .script
         }
         scriptConsecutiveMisses = 0
+        scriptMatchStreak = 0
     }
 
     // MARK: - Finish
