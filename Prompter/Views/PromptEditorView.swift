@@ -4,6 +4,7 @@ struct PromptEditorView: View {
     @Bindable var prompt: Prompt
     @State private var showTeleprompter = false
     @State private var showTargetPicker = false
+    @State private var showKeyPoints = false
     @State private var targetMinutes: Int = 0
     @State private var targetSecs: Int = 0
     @State private var isExtracting = false
@@ -41,13 +42,12 @@ struct PromptEditorView: View {
                         .allowsHitTesting(false)
                 }
             }
-                .onChange(of: prompt.body) {
-                    prompt.updatedAt = Date()
-                    // Clear extracted bullets when text changes
-                    if prompt.hasExtractedBullets {
-                        prompt.extractedBullets = []
-                    }
+            .onChange(of: prompt.body) {
+                prompt.updatedAt = Date()
+                if prompt.hasExtractedBullets {
+                    prompt.extractedBullets = []
                 }
+            }
 
             Divider()
 
@@ -65,24 +65,6 @@ struct PromptEditorView: View {
                 }
 
                 Spacer()
-
-                // Extract key points (only for scripts)
-                if isScript {
-                    Button(action: extractKeyPoints) {
-                        if isExtracting {
-                            ProgressView()
-                                .controlSize(.small)
-                        } else if prompt.hasExtractedBullets {
-                            Label("\(prompt.extractedBullets.count) key points", systemImage: "checkmark.circle.fill")
-                                .font(.caption)
-                                .foregroundStyle(.green)
-                        } else {
-                            Label("Extract key points", systemImage: "list.bullet.rectangle")
-                                .font(.caption)
-                        }
-                    }
-                    .disabled(isExtracting)
-                }
 
                 // Target time
                 Button(action: {
@@ -107,10 +89,28 @@ struct PromptEditorView: View {
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .primaryAction) {
-                Button(action: { showTeleprompter = true }) {
-                    Label("Start", systemImage: "play.fill")
+                HStack(spacing: 16) {
+                    // Key points button (scripts only)
+                    if isScript {
+                        Button(action: keyPointsAction) {
+                            if isExtracting {
+                                ProgressView()
+                                    .controlSize(.small)
+                            } else if prompt.hasExtractedBullets {
+                                Image(systemName: "list.bullet.rectangle.fill")
+                            } else {
+                                Image(systemName: "list.bullet.rectangle")
+                            }
+                        }
+                        .disabled(isExtracting)
+                    }
+
+                    // Play button
+                    Button(action: { showTeleprompter = true }) {
+                        Image(systemName: "play.fill")
+                    }
+                    .disabled(prompt.body.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
                 }
-                .disabled(prompt.body.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
             }
         }
         .fullScreenCover(isPresented: $showTeleprompter) {
@@ -119,10 +119,21 @@ struct PromptEditorView: View {
         .sheet(isPresented: $showTargetPicker) {
             targetTimePicker
         }
+        .sheet(isPresented: $showKeyPoints) {
+            keyPointsSheet
+        }
     }
 
     private var estimatedMinutes: Int {
         max(1, prompt.wordCount / 150)
+    }
+
+    private func keyPointsAction() {
+        if prompt.hasExtractedBullets {
+            showKeyPoints = true
+        } else {
+            extractKeyPoints()
+        }
     }
 
     private func extractKeyPoints() {
@@ -132,8 +143,43 @@ struct PromptEditorView: View {
             prompt.extractedBullets = bullets
             prompt.updatedAt = Date()
             isExtracting = false
+            showKeyPoints = true
         }
     }
+
+    // MARK: - Key Points Sheet
+
+    private var keyPointsSheet: some View {
+        NavigationStack {
+            List {
+                ForEach(Array(prompt.extractedBullets.enumerated()), id: \.offset) { _, point in
+                    HStack(alignment: .top, spacing: 12) {
+                        Image(systemName: "circle.fill")
+                            .font(.system(size: 6))
+                            .foregroundStyle(.secondary)
+                            .padding(.top, 6)
+                        Text(point)
+                    }
+                }
+            }
+            .navigationTitle("Key Points")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Done") { showKeyPoints = false }
+                }
+                ToolbarItem(placement: .bottomBar) {
+                    Button("Re-extract") {
+                        showKeyPoints = false
+                        extractKeyPoints()
+                    }
+                }
+            }
+        }
+        .presentationDetents([.medium, .large])
+    }
+
+    // MARK: - Target Time Picker
 
     private var targetTimePicker: some View {
         NavigationStack {
@@ -190,5 +236,4 @@ struct PromptEditorView: View {
         }
         .presentationDetents([.medium])
     }
-
 }
