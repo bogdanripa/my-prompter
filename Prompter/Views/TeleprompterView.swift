@@ -78,9 +78,9 @@ struct TeleprompterView: View {
             VStack(spacing: 2) {
                 Text(viewModel.elapsedFormatted)
                     .font(.system(size: 16, weight: .medium, design: .monospaced))
-                    .foregroundStyle(timerColor)
+                    .foregroundStyle(viewModel.playbackMode == .bullets ? .white.opacity(0.8) : timerColor)
 
-                if viewModel.hasTarget {
+                if viewModel.hasTarget && viewModel.playbackMode == .script {
                     paceIndicator
                 }
             }
