@@ -25,6 +25,9 @@
 		AA000016 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = AB000016 /* Assets.xcassets */; };
 		AA000017 /* FlowLayout.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB000021 /* FlowLayout.swift */; };
 		AA000020 /* PrompterTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB000020 /* PrompterTests.swift */; };
+		AA000023 /* BulletDetector.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB000023 /* BulletDetector.swift */; };
+		AA000024 /* BulletMatchingEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB000024 /* BulletMatchingEngine.swift */; };
+		AA000025 /* KeyPointExtractor.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB000025 /* KeyPointExtractor.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -60,6 +63,9 @@
 		AB000020 /* PrompterTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrompterTests.swift; sourceTree = "<group>"; };
 		AB000021 /* FlowLayout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FlowLayout.swift; sourceTree = "<group>"; };
 		AB000022 /* Prompter.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Prompter.entitlements; sourceTree = "<group>"; };
+		AB000023 /* BulletDetector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BulletDetector.swift; sourceTree = "<group>"; };
+		AB000024 /* BulletMatchingEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BulletMatchingEngine.swift; sourceTree = "<group>"; };
+		AB000025 /* KeyPointExtractor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyPointExtractor.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -142,6 +148,9 @@
 				AB000010 /* TextMatchingEngine.swift */,
 				AB000011 /* WordTokenizer.swift */,
 				AB000012 /* FuzzyMatcher.swift */,
+				AB000023 /* BulletDetector.swift */,
+				AB000024 /* BulletMatchingEngine.swift */,
+				AB000025 /* KeyPointExtractor.swift */,
 			);
 			path = Engine;
 			sourceTree = "<group>";
@@ -287,6 +296,9 @@
 				AA000014 /* Constants.swift in Sources */,
 				AA000015 /* String+Normalized.swift in Sources */,
 				AA000017 /* FlowLayout.swift in Sources */,
+				AA000023 /* BulletDetector.swift in Sources */,
+				AA000024 /* BulletMatchingEngine.swift in Sources */,
+				AA000025 /* KeyPointExtractor.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -437,19 +449,20 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Prompter/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "My Prompter";
+				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
 				INFOPLIST_KEY_NSMicrophoneUsageDescription = "Prompter uses the microphone to follow your speech and scroll the text automatically.";
 				INFOPLIST_KEY_NSSpeechRecognitionUsageDescription = "Prompter uses speech recognition to match your voice against the prompt text so it can follow along as you speak.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 1.1;
 				PRODUCT_BUNDLE_IDENTIFIER = com.bogdanripa.prompter.app;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
@@ -472,19 +485,20 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Prompter/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "My Prompter";
+				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
 				INFOPLIST_KEY_NSMicrophoneUsageDescription = "Prompter uses the microphone to follow your speech and scroll the text automatically.";
 				INFOPLIST_KEY_NSSpeechRecognitionUsageDescription = "Prompter uses speech recognition to match your voice against the prompt text so it can follow along as you speak.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 1.1;
 				PRODUCT_BUNDLE_IDENTIFIER = com.bogdanripa.prompter.app;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";

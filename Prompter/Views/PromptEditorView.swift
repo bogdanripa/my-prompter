@@ -6,6 +6,11 @@ struct PromptEditorView: View {
     @State private var showTargetPicker = false
     @State private var targetMinutes: Int = 0
     @State private var targetSecs: Int = 0
+    @State private var isExtracting = false
+
+    private var isScript: Bool {
+        !prompt.isBulletFormat && prompt.wordCount >= 30
+    }
 
     var body: some View {
         VStack(spacing: 0) {
@@ -14,30 +19,72 @@ struct PromptEditorView: View {
                 .padding(.horizontal)
                 .padding(.top, 12)
                 .onChange(of: prompt.title) {
-                    prompt.updatedAt = .now
+                    prompt.updatedAt = Date()
                 }
 
             Divider()
                 .padding(.horizontal)
                 .padding(.vertical, 8)
 
-            TextEditor(text: $prompt.body)
-                .font(.body)
-                .padding(.horizontal, 12)
-                .scrollContentBackground(.hidden)
+            ZStack(alignment: .topLeading) {
+                TextEditor(text: $prompt.body)
+                    .font(.body)
+                    .padding(.horizontal, 12)
+                    .scrollContentBackground(.hidden)
+
+                if prompt.body.isEmpty {
+                    Text("Write your script or paste bullet points...")
+                        .font(.body)
+                        .foregroundStyle(.tertiary)
+                        .padding(.horizontal, 17)
+                        .padding(.top, 8)
+                        .allowsHitTesting(false)
+                }
+            }
                 .onChange(of: prompt.body) {
-                    prompt.updatedAt = .now
+                    prompt.updatedAt = Date()
+                    // Clear extracted bullets when text changes
+                    if prompt.hasExtractedBullets {
+                        prompt.extractedBullets = []
+                    }
                 }
 
             Divider()
 
+            // Bottom bar
             HStack {
                 Text("\(prompt.wordCount) words")
                     .font(.caption)
                     .foregroundStyle(.secondary)
 
+                if prompt.isBulletFormat {
+                    let count = BulletDetector.parseBullets(prompt.body).count
+                    Text("\(count) points")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+
                 Spacer()
 
+                // Extract key points (only for scripts)
+                if isScript {
+                    Button(action: extractKeyPoints) {
+                        if isExtracting {
+                            ProgressView()
+                                .controlSize(.small)
+                        } else if prompt.hasExtractedBullets {
+                            Label("\(prompt.extractedBullets.count) key points", systemImage: "checkmark.circle.fill")
+                                .font(.caption)
+                                .foregroundStyle(.green)
+                        } else {
+                            Label("Extract key points", systemImage: "list.bullet.rectangle")
+                                .font(.caption)
+                        }
+                    }
+                    .disabled(isExtracting)
+                }
+
+                // Target time
                 Button(action: {
                     targetMinutes = prompt.targetSeconds / 60
                     targetSecs = prompt.targetSeconds % 60
@@ -78,6 +125,16 @@ struct PromptEditorView: View {
         max(1, prompt.wordCount / 150)
     }
 
+    private func extractKeyPoints() {
+        isExtracting = true
+        Task {
+            let bullets = await KeyPointExtractor.extract(from: prompt.body)
+            prompt.extractedBullets = bullets
+            prompt.updatedAt = Date()
+            isExtracting = false
+        }
+    }
+
     private var targetTimePicker: some View {
         NavigationStack {
             VStack(spacing: 24) {
@@ -111,7 +168,7 @@ struct PromptEditorView: View {
                 if prompt.hasTarget {
                     Button("Remove Target", role: .destructive) {
                         prompt.targetSeconds = 0
-                        prompt.updatedAt = .now
+                        prompt.updatedAt = Date()
                         showTargetPicker = false
                     }
                 }
@@ -124,7 +181,7 @@ struct PromptEditorView: View {
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Set") {
                         prompt.targetSeconds = targetMinutes * 60 + targetSecs
-                        prompt.updatedAt = .now
+                        prompt.updatedAt = Date()
                         showTargetPicker = false
                     }
                     .disabled(targetMinutes == 0 && targetSecs == 0)

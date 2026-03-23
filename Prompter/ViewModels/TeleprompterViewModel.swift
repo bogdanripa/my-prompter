@@ -1,16 +1,30 @@
 import SwiftUI
 import Combine
 
+enum PlaybackMode: Equatable {
+    case script    // word-by-word matching
+    case bullets   // bullet card matching
+}
+
 @MainActor
 final class TeleprompterViewModel: ObservableObject {
+    // Script mode
     @Published var words: [TokenizedWord] = []
     @Published var currentWordIndex: Int = 0
     @Published var totalWords: Int = 0
+
+    // Bullet mode
+    @Published var bullets: [BulletItem] = []
+    @Published var currentBulletIndex: Int = 0
+    @Published var completedBullets: Set<Int> = []
+
+    // Shared state
+    @Published var playbackMode: PlaybackMode = .script
     @Published var isPlaying: Bool = false
     @Published var isFinished: Bool = false
     @Published var permissionError: String?
 
-    // Timer - starts when the first word is spoken, not when play is pressed
+    // Timer
     @Published var elapsedSeconds: Double = 0
     private var timerCancellable: AnyCancellable?
     private var startTime: Date?
@@ -23,80 +37,74 @@ final class TeleprompterViewModel: ObservableObject {
     var hasTarget: Bool { targetSeconds > 0 }
 
     var progress: Double {
-        guard totalWords > 0 else { return 0 }
-        return Double(currentWordIndex) / Double(totalWords)
+        switch playbackMode {
+        case .script:
+            guard totalWords > 0 else { return 0 }
+            return Double(currentWordIndex) / Double(totalWords)
+        case .bullets:
+            guard bullets.count > 0 else { return 0 }
+            return Double(currentBulletIndex) / Double(bullets.count)
+        }
     }
 
-    /// How far ahead or behind the speaker is, in seconds.
-    /// Positive = ahead of schedule, negative = behind.
     var paceOffset: Double {
-        guard hasTarget, totalWords > 0, elapsedSeconds > 0 else { return 0 }
+        guard hasTarget, elapsedSeconds > 0 else { return 0 }
         let expectedProgress = elapsedSeconds / Double(targetSeconds)
-        let actualProgress = Double(currentWordIndex) / Double(totalWords)
-        let diff = actualProgress - expectedProgress
+        let diff = progress - expectedProgress
         return diff * Double(targetSeconds)
     }
 
-    /// Formatted elapsed time string
     var elapsedFormatted: String {
         formatTime(Int(elapsedSeconds))
     }
 
-    /// Formatted remaining time (based on target or estimated)
-    var remainingFormatted: String? {
-        guard hasTarget else { return nil }
-        let remaining = max(0, targetSeconds - Int(elapsedSeconds))
-        return formatTime(remaining)
-    }
-
+    // Engines
     private var tokenizer = WordTokenizer()
     private var matchingEngine: TextMatchingEngine?
+    private var bulletEngine: BulletMatchingEngine?
     private var audioCaptureManager = AudioCaptureManager()
     private var cancellables = Set<AnyCancellable>()
 
-    /// Prepare the view model with a prompt (tokenize text, set up engine)
+    // Auto-fallback: track misses for switching script → bullets
+    private var scriptConsecutiveMisses: Int = 0
+    private let fallbackThreshold: Int = 16
+    private var extractedBullets: [BulletItem] = []
+    private var nativeBulletMode: Bool = false  // true if the prompt was written as bullets
+
+    /// Prepare the view model with a prompt
     func prepare(with prompt: Prompt) {
-        words = tokenizer.tokenize(prompt.body)
-        totalWords = words.count
         targetSeconds = prompt.targetSeconds
 
-        let engine = TextMatchingEngine(words: words)
-        self.matchingEngine = engine
+        if prompt.isBulletFormat {
+            // Native bullet mode
+            nativeBulletMode = true
+            bullets = BulletDetector.parseBullets(prompt.body)
+            playbackMode = .bullets
+            setupBulletEngine()
+        } else {
+            // Script mode
+            nativeBulletMode = false
+            words = tokenizer.tokenize(prompt.body)
+            totalWords = words.count
+            playbackMode = .script
+            setupScriptEngine()
 
-        // Observe cursor changes from matching engine
-        engine.$cursorIndex
-            .receive(on: DispatchQueue.main)
-            .sink { [weak self] index in
-                guard let self else { return }
-                self.currentWordIndex = index
-                // Start timer on first word spoken
-                if index > 0 && !self.timerStarted && self.isPlaying {
-                    self.timerStarted = true
-                    self.startTimer()
+            // Pre-load extracted bullets for fallback
+            if prompt.hasExtractedBullets {
+                extractedBullets = BulletDetector.parseBulletsFromExtracted(prompt.extractedBullets)
+            } else {
+                // Generate heuristic bullets as fallback
+                Task {
+                    let extracted = await KeyPointExtractor.extract(from: prompt.body)
+                    self.extractedBullets = BulletDetector.parseBulletsFromExtracted(extracted)
                 }
-                // Finish when last few words are reached -- wait 3 seconds to confirm
-                if index >= self.totalWords - 3 && self.totalWords > 0 && !self.isFinished {
-                    self.scheduleFinish()
-                } else {
-                    self.cancelScheduledFinish()
-                }
-            }
-            .store(in: &cancellables)
-
-        // Set up audio callback
-        let vocabulary = tokenizer.uniqueVocabulary(from: words)
-        audioCaptureManager.setContextualStrings(vocabulary)
-
-        audioCaptureManager.onPartialResult = { [weak engine] recognizedWords in
-            Task { @MainActor in
-                engine?.processPartialResult(recognizedWords)
             }
         }
     }
 
     /// Start listening and matching
     func start(with prompt: Prompt) {
-        if matchingEngine == nil {
+        if matchingEngine == nil && bulletEngine == nil {
             prepare(with: prompt)
         }
 
@@ -117,6 +125,151 @@ final class TeleprompterViewModel: ObservableObject {
         }
     }
 
+    /// Pause listening
+    func pause() {
+        audioCaptureManager.stopListening()
+        isPlaying = false
+        if timerStarted { stopTimer() }
+    }
+
+    /// Stop and clean up
+    func stop() {
+        audioCaptureManager.stopListening()
+        isPlaying = false
+        stopTimer()
+        cancellables.removeAll()
+    }
+
+    // MARK: - Script Engine Setup
+
+    private func setupScriptEngine() {
+        let engine = TextMatchingEngine(words: words)
+        self.matchingEngine = engine
+
+        engine.$cursorIndex
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] index in
+                guard let self else { return }
+                self.currentWordIndex = index
+                self.scriptConsecutiveMisses = 0
+
+                if index > 0 && !self.timerStarted && self.isPlaying {
+                    self.timerStarted = true
+                    self.startTimer()
+                }
+
+                if index >= self.totalWords - 3 && self.totalWords > 0 && !self.isFinished {
+                    self.scheduleFinish()
+                } else {
+                    self.cancelScheduledFinish()
+                }
+            }
+            .store(in: &cancellables)
+
+        let vocabulary = tokenizer.uniqueVocabulary(from: words)
+        audioCaptureManager.setContextualStrings(vocabulary)
+
+        audioCaptureManager.onPartialResult = { [weak self, weak engine] recognizedWords in
+            Task { @MainActor in
+                guard let self else { return }
+
+                if self.playbackMode == .script {
+                    let prevIndex = engine?.cursorIndex ?? 0
+                    engine?.processPartialResult(recognizedWords)
+                    let newIndex = engine?.cursorIndex ?? 0
+
+                    // Track misses for auto-fallback
+                    if prevIndex == newIndex && !recognizedWords.isEmpty {
+                        self.scriptConsecutiveMisses += 1
+                        if self.scriptConsecutiveMisses >= self.fallbackThreshold && !self.extractedBullets.isEmpty {
+                            self.switchToBullets()
+                        }
+                    }
+                } else {
+                    // In bullet mode, feed to bullet engine
+                    self.bulletEngine?.processPartialResult(recognizedWords)
+
+                    // Check if we should switch back to script
+                    if !self.nativeBulletMode {
+                        engine?.processPartialResult(recognizedWords)
+                        let prevIndex = self.currentWordIndex
+                        let newIndex = engine?.cursorIndex ?? 0
+                        if newIndex > prevIndex + 3 {
+                            // Script matching is working again
+                            self.switchToScript()
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    // MARK: - Bullet Engine Setup
+
+    private func setupBulletEngine() {
+        let engine = BulletMatchingEngine(bullets: bullets)
+        self.bulletEngine = engine
+
+        engine.$currentBulletIndex
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] index in
+                guard let self else { return }
+                self.currentBulletIndex = index
+
+                if index > 0 && !self.timerStarted && self.isPlaying {
+                    self.timerStarted = true
+                    self.startTimer()
+                }
+            }
+            .store(in: &cancellables)
+
+        engine.$completedBullets
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] completed in
+                guard let self else { return }
+                self.completedBullets = completed
+
+                // Check if all bullets completed
+                if completed.count == self.bullets.count && !self.isFinished {
+                    self.scheduleFinish()
+                }
+            }
+            .store(in: &cancellables)
+
+        // For native bullet mode, set up audio directly
+        if nativeBulletMode {
+            // Collect all keywords as contextual strings
+            let allKeywords = bullets.flatMap { $0.keywords }
+            audioCaptureManager.setContextualStrings(Array(Set(allKeywords)))
+
+            audioCaptureManager.onPartialResult = { [weak engine] recognizedWords in
+                Task { @MainActor in
+                    engine?.processPartialResult(recognizedWords)
+                }
+            }
+        }
+    }
+
+    // MARK: - Mode Switching
+
+    private func switchToBullets() {
+        bullets = extractedBullets
+        setupBulletEngine()
+        withAnimation(.easeInOut(duration: 0.4)) {
+            playbackMode = .bullets
+        }
+        scriptConsecutiveMisses = 0
+    }
+
+    private func switchToScript() {
+        withAnimation(.easeInOut(duration: 0.4)) {
+            playbackMode = .script
+        }
+        scriptConsecutiveMisses = 0
+    }
+
+    // MARK: - Finish
+
     private func scheduleFinish() {
         guard finishTask == nil else { return }
         finishTask = Task { @MainActor in
@@ -131,27 +284,12 @@ final class TeleprompterViewModel: ObservableObject {
         finishTask = nil
     }
 
-    /// Called when the speaker reaches the end
     private func finish() {
         isFinished = true
+        bulletEngine?.finishAll()
         audioCaptureManager.stopListening()
         isPlaying = false
         if timerStarted { stopTimer() }
-    }
-
-    /// Pause listening
-    func pause() {
-        audioCaptureManager.stopListening()
-        isPlaying = false
-        if timerStarted { stopTimer() }
-    }
-
-    /// Stop and clean up
-    func stop() {
-        audioCaptureManager.stopListening()
-        isPlaying = false
-        stopTimer()
-        cancellables.removeAll()
     }
 
     // MARK: - Timer

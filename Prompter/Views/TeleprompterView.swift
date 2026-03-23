@@ -34,7 +34,15 @@ struct TeleprompterView: View {
             VStack(spacing: 0) {
                 topBar
                 progressBar
-                textArea
+
+                if viewModel.playbackMode == .script {
+                    textArea
+                        .transition(.opacity)
+                } else {
+                    bulletArea
+                        .transition(.opacity)
+                }
+
                 bottomControls
             }
 
@@ -140,6 +148,60 @@ struct TeleprompterView: View {
             }
         }
         .scaleEffect(x: mirrorMode ? -1 : 1, y: 1)
+    }
+
+    // MARK: - Bullet Area
+
+    private var bulletArea: some View {
+        ScrollViewReader { scrollProxy in
+            ScrollView {
+                VStack(spacing: 16) {
+                    ForEach(viewModel.bullets) { bullet in
+                        bulletCard(bullet)
+                            .id("bullet_\(bullet.id)")
+                    }
+                }
+                .padding(.horizontal, 24)
+                .padding(.vertical, 40)
+            }
+            .onChange(of: viewModel.currentBulletIndex) { _, newIndex in
+                withAnimation(.spring(duration: 0.6, bounce: 0)) {
+                    scrollProxy.scrollTo("bullet_\(newIndex)", anchor: .init(x: 0.5, y: 0.3))
+                }
+            }
+        }
+        .scaleEffect(x: mirrorMode ? -1 : 1, y: 1)
+    }
+
+    private func bulletCard(_ bullet: BulletItem) -> some View {
+        let isCurrent = bullet.id == viewModel.currentBulletIndex
+        let isCompleted = viewModel.completedBullets.contains(bullet.id)
+        let isUpcoming = bullet.id > viewModel.currentBulletIndex && !isCompleted
+
+        return HStack(alignment: .top, spacing: 16) {
+            // Checkmark or bullet marker
+            Image(systemName: isCompleted ? "checkmark.circle.fill" : "circle")
+                .font(.system(size: 24))
+                .foregroundStyle(isCompleted ? .green : (isCurrent ? highlightColor : .gray.opacity(0.3)))
+                .animation(.easeInOut(duration: 0.3), value: isCompleted)
+
+            Text(bullet.text)
+                .font(.system(size: fontSize * 0.8, weight: isCurrent ? .medium : .regular))
+                .foregroundStyle(
+                    isCompleted ? .white.opacity(0.5) :
+                    isCurrent ? highlightColor :
+                    .gray.opacity(0.4)
+                )
+                .frame(maxWidth: .infinity, alignment: .leading)
+        }
+        .padding(.horizontal, 20)
+        .padding(.vertical, 16)
+        .background(
+            RoundedRectangle(cornerRadius: 12)
+                .fill(isCurrent ? .white.opacity(0.08) : .clear)
+        )
+        .animation(.easeInOut(duration: 0.3), value: isCurrent)
+        .animation(.easeInOut(duration: 0.3), value: isCompleted)
     }
 
     // MARK: - Bottom Controls

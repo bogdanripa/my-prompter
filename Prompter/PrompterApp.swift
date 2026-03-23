@@ -18,6 +18,7 @@ struct PrompterApp: App {
 
 enum SeedData {
     static let sampleTitles = [
+        "My First Talk",
         "Welcome to My Prompter",
         "Flying Car Pitch",
         "We Choose the Moon"
@@ -82,6 +83,15 @@ enum SeedData {
                     Your words, your pace, your stage.
                     """,
                 targetSeconds: 60
+            ),
+            Prompt(
+                title: "My First Talk",
+                body: """
+                    - Introduce yourself
+                    - Talk about where you live
+                    - Ask for support for a great cause
+                    - Close with your Instagram for follow ups
+                    """
             )
         ]
     }
