@@ -113,6 +113,15 @@ struct PromptEditorView: View {
                 }
             }
         }
+        .onDisappear {
+            if prompt.title.isEmpty && !prompt.body.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                Task {
+                    let title = await TitleGenerator.generate(from: prompt.body)
+                    prompt.title = title
+                    prompt.updatedAt = Date()
+                }
+            }
+        }
         .fullScreenCover(isPresented: $showTeleprompter) {
             TeleprompterView(prompt: prompt)
         }
