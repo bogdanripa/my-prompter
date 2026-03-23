@@ -43,7 +43,7 @@ final class TeleprompterViewModel: ObservableObject {
             return Double(currentWordIndex) / Double(totalWords)
         case .bullets:
             guard bullets.count > 0 else { return 0 }
-            return Double(currentBulletIndex) / Double(bullets.count)
+            return Double(completedBullets.count) / Double(bullets.count)
         }
     }
 
