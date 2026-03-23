@@ -91,7 +91,7 @@ struct PromptEditorView: View {
                     showTargetPicker = true
                 }) {
                     if prompt.hasTarget {
-                        Label(formatTime(prompt.targetSeconds), systemImage: "timer")
+                        Label(prompt.targetSeconds.timeFormatted, systemImage: "timer")
                             .font(.caption)
                     } else if prompt.wordCount > 0 {
                         Label("~\(estimatedMinutes) min", systemImage: "timer")
@@ -191,9 +191,4 @@ struct PromptEditorView: View {
         .presentationDetents([.medium])
     }
 
-    private func formatTime(_ totalSeconds: Int) -> String {
-        let m = totalSeconds / 60
-        let s = totalSeconds % 60
-        return String(format: "%d:%02d", m, s)
-    }
 }

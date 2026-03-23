@@ -55,7 +55,7 @@ final class TeleprompterViewModel: ObservableObject {
     }
 
     var elapsedFormatted: String {
-        formatTime(Int(elapsedSeconds))
+        Int(elapsedSeconds).timeFormatted
     }
 
     // Engines
@@ -313,9 +313,4 @@ final class TeleprompterViewModel: ObservableObject {
         timerCancellable = nil
     }
 
-    private func formatTime(_ totalSeconds: Int) -> String {
-        let m = totalSeconds / 60
-        let s = totalSeconds % 60
-        return String(format: "%d:%02d", m, s)
-    }
 }

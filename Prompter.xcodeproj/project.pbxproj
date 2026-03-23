@@ -20,7 +20,7 @@
 		AA000011 /* WordTokenizer.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB000011 /* WordTokenizer.swift */; };
 		AA000012 /* FuzzyMatcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB000012 /* FuzzyMatcher.swift */; };
 		AA000013 /* Permissions.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB000013 /* Permissions.swift */; };
-		AA000014 /* Constants.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB000014 /* Constants.swift */; };
+
 		AA000015 /* String+Normalized.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB000015 /* String+Normalized.swift */; };
 		AA000016 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = AB000016 /* Assets.xcassets */; };
 		AA000017 /* FlowLayout.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB000021 /* FlowLayout.swift */; };
@@ -28,6 +28,7 @@
 		AA000023 /* BulletDetector.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB000023 /* BulletDetector.swift */; };
 		AA000024 /* BulletMatchingEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB000024 /* BulletMatchingEngine.swift */; };
 		AA000025 /* KeyPointExtractor.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB000025 /* KeyPointExtractor.swift */; };
+		AA000026 /* Int+TimeFormat.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB000026 /* Int+TimeFormat.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -54,7 +55,7 @@
 		AB000011 /* WordTokenizer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WordTokenizer.swift; sourceTree = "<group>"; };
 		AB000012 /* FuzzyMatcher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FuzzyMatcher.swift; sourceTree = "<group>"; };
 		AB000013 /* Permissions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Permissions.swift; sourceTree = "<group>"; };
-		AB000014 /* Constants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Constants.swift; sourceTree = "<group>"; };
+
 		AB000015 /* String+Normalized.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "String+Normalized.swift"; sourceTree = "<group>"; };
 		AB000016 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		AB000017 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -66,6 +67,7 @@
 		AB000023 /* BulletDetector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BulletDetector.swift; sourceTree = "<group>"; };
 		AB000024 /* BulletMatchingEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BulletMatchingEngine.swift; sourceTree = "<group>"; };
 		AB000025 /* KeyPointExtractor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyPointExtractor.swift; sourceTree = "<group>"; };
+		AB000026 /* Int+TimeFormat.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Int+TimeFormat.swift"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -159,7 +161,6 @@
 			isa = PBXGroup;
 			children = (
 				AB000013 /* Permissions.swift */,
-				AB000014 /* Constants.swift */,
 			);
 			path = Utilities;
 			sourceTree = "<group>";
@@ -168,6 +169,7 @@
 			isa = PBXGroup;
 			children = (
 				AB000015 /* String+Normalized.swift */,
+				AB000026 /* Int+TimeFormat.swift */,
 			);
 			path = Extensions;
 			sourceTree = "<group>";
@@ -293,12 +295,13 @@
 				AA000011 /* WordTokenizer.swift in Sources */,
 				AA000012 /* FuzzyMatcher.swift in Sources */,
 				AA000013 /* Permissions.swift in Sources */,
-				AA000014 /* Constants.swift in Sources */,
+
 				AA000015 /* String+Normalized.swift in Sources */,
 				AA000017 /* FlowLayout.swift in Sources */,
 				AA000023 /* BulletDetector.swift in Sources */,
 				AA000024 /* BulletMatchingEngine.swift in Sources */,
 				AA000025 /* KeyPointExtractor.swift in Sources */,
+				AA000026 /* Int+TimeFormat.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

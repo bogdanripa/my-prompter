@@ -100,12 +100,4 @@ final class BulletMatchingEngine: ObservableObject {
         advanceConfirmations = 0
     }
 
-    var progress: Double {
-        guard bullets.count > 0 else { return 0 }
-        return Double(currentBulletIndex) / Double(bullets.count)
-    }
-
-    var isAtEnd: Bool {
-        currentBulletIndex >= bullets.count - 1 && completedBullets.contains(currentBulletIndex)
-    }
 }

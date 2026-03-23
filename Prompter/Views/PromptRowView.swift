@@ -22,11 +22,9 @@ struct PromptRowView: View {
                     .foregroundStyle(.tertiary)
 
                 if prompt.hasTarget {
-                    let m = prompt.targetSeconds / 60
-                    let s = prompt.targetSeconds % 60
                     HStack(spacing: 2) {
                         Image(systemName: "timer")
-                        Text(String(format: "%d:%02d", m, s))
+                        Text(prompt.targetSeconds.timeFormatted)
                     }
                     .font(.caption)
                     .foregroundStyle(.tertiary)

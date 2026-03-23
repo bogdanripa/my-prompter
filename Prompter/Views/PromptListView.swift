@@ -129,7 +129,7 @@ struct PromptListView: View {
                 if let p = targetPrompt, p.hasTarget {
                     Button("Remove Target", role: .destructive) {
                         p.targetSeconds = 0
-                        p.updatedAt = .now
+                        p.updatedAt = Date()
                         showTargetPicker = false
                     }
                 }
@@ -143,7 +143,7 @@ struct PromptListView: View {
                     Button("Set") {
                         if let p = targetPrompt {
                             p.targetSeconds = targetMinutes * 60 + targetSecs
-                            p.updatedAt = .now
+                            p.updatedAt = Date()
                         }
                         showTargetPicker = false
                     }

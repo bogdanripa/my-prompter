@@ -155,6 +155,86 @@ final class WordTokenizerTests: XCTestCase {
     }
 }
 
+final class BulletDetectorTests: XCTestCase {
+
+    func testDetectsDashBullets() {
+        let text = "- Point one\n- Point two\n- Point three"
+        XCTAssertTrue(BulletDetector.isBulletFormat(text))
+    }
+
+    func testDetectsAsteriskBullets() {
+        let text = "* First\n* Second\n* Third"
+        XCTAssertTrue(BulletDetector.isBulletFormat(text))
+    }
+
+    func testDetectsNumberedBullets() {
+        let text = "1. First\n2. Second\n3. Third"
+        XCTAssertTrue(BulletDetector.isBulletFormat(text))
+    }
+
+    func testDetectsUnicodeBullets() {
+        let text = "• Alpha\n• Beta\n• Gamma"
+        XCTAssertTrue(BulletDetector.isBulletFormat(text))
+    }
+
+    func testRejectsPlainText() {
+        let text = "This is a normal paragraph. It has sentences but no bullets."
+        XCTAssertFalse(BulletDetector.isBulletFormat(text))
+    }
+
+    func testRejectsMixedContent() {
+        let text = "- Bullet one\nThis is not a bullet\n- Bullet two"
+        XCTAssertFalse(BulletDetector.isBulletFormat(text))
+    }
+
+    func testRejectsSingleLine() {
+        let text = "- Just one bullet"
+        XCTAssertFalse(BulletDetector.isBulletFormat(text))
+    }
+
+    func testParseBullets() {
+        let text = "- Introduce yourself\n- Talk about your project\n- Close with a call to action"
+        let bullets = BulletDetector.parseBullets(text)
+        XCTAssertEqual(bullets.count, 3)
+        XCTAssertEqual(bullets[0].text, "Introduce yourself")
+        XCTAssertEqual(bullets[2].text, "Close with a call to action")
+    }
+
+    func testKeywordExtraction() {
+        let keywords = BulletDetector.extractKeywords(from: "Talk about where you live and what you do")
+        XCTAssertFalse(keywords.contains("about"))  // stop word
+        XCTAssertFalse(keywords.contains("and"))     // stop word
+        XCTAssertTrue(keywords.contains("talk") || keywords.contains("live"))
+    }
+
+    func testStripBulletMarkers() {
+        XCTAssertEqual(BulletDetector.stripBulletMarker("- Hello"), "Hello")
+        XCTAssertEqual(BulletDetector.stripBulletMarker("* World"), "World")
+        XCTAssertEqual(BulletDetector.stripBulletMarker("• Test"), "Test")
+        XCTAssertEqual(BulletDetector.stripBulletMarker("1. First"), "First")
+        XCTAssertEqual(BulletDetector.stripBulletMarker("12. Twelfth"), "Twelfth")
+    }
+}
+
+final class TimeFormatTests: XCTestCase {
+
+    func testZero() {
+        XCTAssertEqual(0.timeFormatted, "0:00")
+    }
+
+    func testSeconds() {
+        XCTAssertEqual(45.timeFormatted, "0:45")
+    }
+
+    func testMinutesAndSeconds() {
+        XCTAssertEqual(90.timeFormatted, "1:30")
+    }
+
+    func testExactMinute() {
+        XCTAssertEqual(120.timeFormatted, "2:00")
+    }
+}
+
 final class StringNormalizedTests: XCTestCase {
 
     func testBasicNormalization() {
