@@ -2,7 +2,7 @@
 
 **My Prompter** — Privacy Policy
 
-*Last updated: March 22, 2026*
+*Last updated: March 23, 2026*
 
 ## Overview
 

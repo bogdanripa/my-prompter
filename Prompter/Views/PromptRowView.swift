@@ -17,9 +17,16 @@ struct PromptRowView: View {
             }
 
             HStack(spacing: 6) {
-                Text("\(prompt.wordCount) words")
-                    .font(.caption)
-                    .foregroundStyle(.tertiary)
+                if prompt.isBulletFormat {
+                    let count = BulletDetector.parseBullets(prompt.body).count
+                    Text("\(count) points")
+                        .font(.caption)
+                        .foregroundStyle(.tertiary)
+                } else {
+                    Text("\(prompt.wordCount) words")
+                        .font(.caption)
+                        .foregroundStyle(.tertiary)
+                }
 
                 if prompt.hasTarget {
                     HStack(spacing: 2) {
