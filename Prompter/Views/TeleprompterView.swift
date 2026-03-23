@@ -88,7 +88,15 @@ struct TeleprompterView: View {
 
             Spacer()
 
-            Color.clear.frame(width: 28, height: 28)
+            if viewModel.canToggleMode {
+                Button(action: { viewModel.toggleMode() }) {
+                    Image(systemName: viewModel.playbackMode == .script ? "list.bullet" : "text.alignleft")
+                        .font(.title2)
+                        .foregroundStyle(.white.opacity(0.7))
+                }
+            } else {
+                Color.clear.frame(width: 28, height: 28)
+            }
         }
         .padding(.horizontal)
         .padding(.top, 8)

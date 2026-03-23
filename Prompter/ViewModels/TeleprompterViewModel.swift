@@ -75,17 +75,20 @@ final class TeleprompterViewModel: ObservableObject {
     func prepare(with prompt: Prompt) {
         targetSeconds = prompt.targetSeconds
 
+        // Always tokenize words so script view is available for toggle
+        words = tokenizer.tokenize(prompt.body)
+        totalWords = words.count
+
         if prompt.isBulletFormat {
             // Native bullet mode
             nativeBulletMode = true
             bullets = BulletDetector.parseBullets(prompt.body)
             playbackMode = .bullets
             setupBulletEngine()
+            setupScriptEngine()
         } else {
             // Script mode
             nativeBulletMode = false
-            words = tokenizer.tokenize(prompt.body)
-            totalWords = words.count
             playbackMode = .script
             setupScriptEngine()
 
@@ -97,6 +100,37 @@ final class TeleprompterViewModel: ObservableObject {
                 Task {
                     let extracted = await KeyPointExtractor.extract(from: prompt.body)
                     self.extractedBullets = BulletDetector.parseBulletsFromExtracted(extracted)
+                }
+            }
+        }
+    }
+
+    /// Whether the user can manually toggle between script and bullet views
+    var canToggleMode: Bool {
+        // Script with extracted bullets available, or native bullets with words also available
+        if nativeBulletMode {
+            return totalWords > 0  // can switch to script view
+        } else {
+            return !extractedBullets.isEmpty || !bullets.isEmpty  // can switch to bullet view
+        }
+    }
+
+    /// Manually toggle between script and bullet views
+    func toggleMode() {
+        if playbackMode == .script {
+            if bullets.isEmpty {
+                bullets = extractedBullets
+            }
+            if !bullets.isEmpty {
+                setupBulletEngine()
+                withAnimation(.easeInOut(duration: 0.4)) {
+                    playbackMode = .bullets
+                }
+            }
+        } else {
+            if totalWords > 0 {
+                withAnimation(.easeInOut(duration: 0.4)) {
+                    playbackMode = .script
                 }
             }
         }
